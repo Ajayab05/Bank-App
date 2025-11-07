@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    container_name: bank-app-db
+    environment:
+      POSTGRES_USER: bankuser
+      POSTGRES_PASSWORD: bankpass
+      POSTGRES_DB: bankdb
+    ports:
+      - "5433:5432"   # Host 5433 -> Container 5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: bank-app-backend
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: bankuser
+      DB_PASSWORD: bankpass
+      DB_NAME: bankdb
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: bank-app-frontend
+    ports:
+      - "5000:80"   # Host 5000 -> Container 80
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
