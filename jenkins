@@ -1,0 +1,34 @@
+pipeline {
+  agent any
+
+  environment {
+    COMPOSE_CMD = "docker-compose"   // Or "docker compose" if using newer Docker
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        git credentialsId: 'github-creds', url: 'https://github.com/Ajayab05/Bank-App.git', branch: 'main'
+      }
+    }
+
+    stage('Build and Deploy') {
+      steps {
+        sh '''
+          # Stop and remove old containers
+          $COMPOSE_CMD down --remove-orphans --volumes
+
+          # Remove any container with same name (if still present)
+          docker rm -f bank-app-db || true
+          docker rm -f bank-app-backend || true
+          docker rm -f bank-app-frontend || true
+
+          # Build and run fresh containers
+          $COMPOSE_CMD up -d --build
+        '''
+      }
+    }
+
+  }
+}
